@@ -1,0 +1,71 @@
+Creation de la VM sous Virtualbox avec l'image Debian 12
+Creation d'un utilisateur (non admin) lors de l'installation (obligatoire)
+user=debian pass=debian
+
+  Ajout d'un nouvel utilisateur (ligne de commande)
+adduser newton
+definition du Mdp
+=> user=newton pass=isaac
+
+  Installation d'un interface graphique : (Gnome)
+apt-get install gnome
+reboot
+
+  installation de vscode:
+telechargement du package code_1.84.2-1699528352_amd64.deb via navigateur
+overture du paquet : dpkg -i /mnt/share/code_1.84.2-1699528352_amd64.deb
+installation du paquet : apt-get install -f
+
+  Installation de SSH serveur : 
+apt-get install openssh-server 
+systemctl start ssh
+
+  Installation de tshark :
+apt-get install tshark
+  Execution de tshark:
+tshark -Y ssh (-Y pour de capturer que le flux SSH)
+
+  Installation serveur Web nginx :
+apt-get install nginx
+les logs de connection sont enregistrés dans le fichier : /var/log/nginx/access.log
+
+  Identification par utilisateur/MDP sur la page principale nginx :
+Edition du fichier /etc/nginx/site-enabled/default avec l'outil NANO
+Ajout des deux lignes de code suivante dans la section location / {  }
+  => auth_basic "Restricted Content";
+  => auth_basic_user_file /etc/nginx/.htpasswd
+creation du fichier utilisateur pour la page web (indépendant des utilisateur du systeme) :
+  sh -c "echo -n 'archimed:' >> /etc/nginx/.htpasswd" (creation du fichier et ajout de l'utilisateur)
+  sh -c "openssl passwd -apr1 >> /etc/nginx/.htpasswd" (definition et ajout d'un MDP, écriture haché pour le MDP)
+
+Observation des connextions sur nginx avec tshark :
+  tshark -Y http
+
+Installation de docker :
+  installation des prerequis : (avec apt-get install )
+    curl
+    apt-transport-https
+    ca-certificates
+    software-properties-common
+  ajout des url des serveur de dépot pour installation et mise a jour:
+    curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian focal stable"
+  Installation de docker :
+    apt-get install docker-ce
+    systemctl start docker
+
+Creation du conteneur pour apache :
+  docker run --name='apache' --hostname='apache' -it debian -p 8080:08 
+    on nome le conteneur 'apache', on configure un pseudo tty (terminal)
+    et on translate le port 8080 (externe) vers le port 08 (interne)
+
+configuration du conteneur apache:
+  connextion au conteneur docker exec -it apache login
+    (arrivé dans le tty du conteneur)
+  installation de l'utilitaire iproute2 pour l'interface et la configuration reseau
+  installation ed NANO pour l'edition de fichier
+  installation d'apache : apt-get install apache2
+  configuration de apache pour ecouter sur le port 08:
+    edition avec NANO du fichier /etc/apache2/ports.conf
+      changement de la valeur listen en 08
+  
